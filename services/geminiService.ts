@@ -1,12 +1,11 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
-import { LanguageCode } from "../types.ts";
 
 export async function translateAnnouncement(title: string, content: string) {
-  // Always create a new instance right before the call to ensure the latest API key is used.
-  // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+  // Use the system-provided API key directly.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  const userPrompt = `Source text to translate:
+  const userPrompt = `Translate the following school announcement into multiple languages.
 Title: ${title}
 Content: ${content}`;
 
@@ -15,25 +14,16 @@ Content: ${content}`;
       model: "gemini-3-flash-preview",
       contents: userPrompt,
       config: {
-        systemInstruction: "You are a professional school communication translator. Translate the given Korean text into English (EN), Chinese (ZH), Russian (RU), Vietnamese (VI), Japanese (JA), and French (FR). Output MUST be a valid JSON array of objects with keys: lang, title, content. The tone should be polite and clear for parents and students.",
+        systemInstruction: "You are a specialized school communication translator. Translate to EN, ZH, RU, VI, JA, FR. Output a valid JSON array of objects: [{langCode, title, content}].",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              lang: {
-                type: Type.STRING,
-                description: "The language code",
-              },
-              title: {
-                type: Type.STRING,
-                description: "The translated title",
-              },
-              content: {
-                type: Type.STRING,
-                description: "The translated content",
-              },
+              lang: { type: Type.STRING },
+              title: { type: Type.STRING },
+              content: { type: Type.STRING },
             },
             required: ["lang", "title", "content"],
           },
@@ -41,12 +31,7 @@ Content: ${content}`;
       },
     });
 
-    const text = response.text;
-    if (!text) throw new Error("Empty response from Gemini API");
-
-    // Clean potential markdown wrappers if they exist despite responseMimeType
-    const cleanedJson = text.replace(/^```json\n?|\n?```$/g, '').trim();
-    return JSON.parse(cleanedJson);
+    return JSON.parse(response.text || "[]");
   } catch (error) {
     console.error("Gemini Translation Error:", error);
     throw error;
