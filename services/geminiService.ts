@@ -2,9 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { LanguageCode } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export async function translateAnnouncement(title: string, content: string) {
+  // Initialize inside function to ensure API_KEY is available and avoid global scope reference errors
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const prompt = `Translate the following school announcement into English (EN), Chinese (ZH), Russian (RU), Vietnamese (VI), Japanese (JA), and French (FR). 
   Ensure the tone is professional, polite, and educational. Maintain the core meaning accurately.
   
