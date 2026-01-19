@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Announcement, LanguageCode } from '../types';
-import { CATEGORY_COLORS } from '../constants';
+import { Announcement, LanguageCode } from '../types.ts';
+import { CATEGORY_COLORS } from '../constants.ts';
 
 interface Props {
   announcement: Announcement;

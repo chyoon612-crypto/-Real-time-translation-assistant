@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { SUPPORTED_LANGUAGES } from '../constants';
-import { LanguageCode } from '../types';
+import { SUPPORTED_LANGUAGES } from '../constants.ts';
+import { LanguageCode } from '../types.ts';
 
 interface Props {
   selected: LanguageCode;

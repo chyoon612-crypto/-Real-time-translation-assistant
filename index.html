@@ -17,21 +17,45 @@
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
             background-color: #f8fafc;
         }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
     </style>
+    <script>
+      // Crucial: Polyfill process for browser environments
+      window.process = window.process || { env: { API_KEY: "" } };
+      // Error logging
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error('Window Error: ', msg, ' [', url, ':', lineNo, ':', columnNo, ']', error);
+        return false;
+      };
+    </script>
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0"
+    "react": "https://esm.sh/react@19.0.0",
+    "react/": "https://esm.sh/react@19.0.0/",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/": "https://esm.sh/react-dom@19.0.0/",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "react-router-dom": "https://esm.sh/react-router-dom@7.1.5?external=react,react-dom",
+    "@google/genai": "https://esm.sh/@google/genai@1.37.0"
   }
 }
 </script>
 </head>
 <body>
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>

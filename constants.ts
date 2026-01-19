@@ -1,5 +1,5 @@
 
-import { Language, Category } from './types';
+import { Language, Category } from './types.ts';
 
 export const SUPPORTED_LANGUAGES: Language[] = [
   { code: 'KO', name: '한국어', nativeName: '한국어' },
