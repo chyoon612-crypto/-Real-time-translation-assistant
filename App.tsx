@@ -100,9 +100,10 @@ const LiveClassroom: React.FC = () => {
       setContent('');
       setEditingId(null);
       setCategory('공지');
-    } catch (error) {
-      console.error(error);
-      alert("번역 처리 중 오류가 발생했습니다.");
+    } catch (error: any) {
+      console.error("Translation operation failed:", error);
+      const errorMessage = error.message || "알 수 없는 오류가 발생했습니다.";
+      alert(`번역 처리 중 오류가 발생했습니다: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
