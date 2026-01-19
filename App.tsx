@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link } from 'react-router-dom';
 import { 
@@ -13,12 +12,20 @@ import { translateAnnouncement } from './services/geminiService.ts';
 import { LanguageSelector } from './components/LanguageSelector.tsx';
 import { AnnouncementCard } from './components/AnnouncementCard.tsx';
 
+// Fix: Use the existing AIStudio type to match the environment's definition and avoid modifier conflicts
+declare global {
+  interface Window {
+    aistudio: AIStudio;
+  }
+}
+
 const Icons = {
   Plus: () => <span>+</span>,
   ArrowRight: () => <span className="ml-1">→</span>,
   Loading: () => <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>,
   Teacher: () => <span className="mr-2">👨‍🏫</span>,
   Student: () => <span className="mr-2">🧑‍🎓</span>,
+  Key: () => <span className="text-3xl mb-4">🔑</span>,
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -47,7 +54,50 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
+const ApiKeyLanding: React.FC<{ onKeySelected: () => void }> = ({ onKeySelected }) => {
+  const handleConnect = async () => {
+    try {
+      if (window.aistudio) {
+        await window.aistudio.openSelectKey();
+        onKeySelected();
+      } else {
+        alert("Google AI Studio 환경을 찾을 수 없습니다. API_KEY 환경 변수가 설정되어 있는지 확인해주세요.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  return (
+    <div className="h-full flex items-center justify-center bg-slate-50 p-6">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center border border-slate-100">
+        <Icons.Key />
+        <h1 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">AI 서비스 연결 필요</h1>
+        <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+          다국어 번역 기능을 사용하려면 Google AI Studio API 키를 연결해야 합니다.<br/>
+          <a 
+            href="https://ai.google.dev/gemini-api/docs/billing" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-indigo-600 font-bold hover:underline"
+          >
+            유료 프로젝트(Billing)
+          </a> 설정이 필요할 수 있습니다.
+        </p>
+        <button 
+          onClick={handleConnect}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-3"
+        >
+          <span>API 키 연결하기</span>
+          <Icons.ArrowRight />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const LiveClassroom: React.FC = () => {
+  const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedLang, setSelectedLang] = useState<LanguageCode>('KO');
@@ -58,6 +108,23 @@ const LiveClassroom: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
+    const checkKey = async () => {
+      // Check if API key is already in env
+      if (process.env.API_KEY && process.env.API_KEY.length > 5) {
+        setHasKey(true);
+        return;
+      }
+      
+      // Check via AI Studio if available
+      if (window.aistudio) {
+        const selected = await window.aistudio.hasSelectedApiKey();
+        setHasKey(selected);
+      } else {
+        setHasKey(false);
+      }
+    };
+    checkKey();
+
     const saved = localStorage.getItem('gb_announcements');
     if (saved) setAnnouncements(JSON.parse(saved));
     
@@ -103,7 +170,13 @@ const LiveClassroom: React.FC = () => {
     } catch (error: any) {
       console.error("Translation operation failed:", error);
       const errorMessage = error.message || "알 수 없는 오류가 발생했습니다.";
-      alert(`번역 처리 중 오류가 발생했습니다: ${errorMessage}`);
+      
+      if (errorMessage.includes("Requested entity was not found")) {
+        alert("API 키 프로젝트를 찾을 수 없습니다. 다시 연결해주세요.");
+        setHasKey(false);
+      } else {
+        alert(`번역 처리 중 오류가 발생했습니다: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -124,6 +197,9 @@ const LiveClassroom: React.FC = () => {
       saveAnnouncements(announcements.filter(a => a.id !== id));
     }
   };
+
+  if (hasKey === null) return <div className="h-full flex items-center justify-center bg-slate-50"><Icons.Loading /></div>;
+  if (hasKey === false) return <ApiKeyLanding onKeySelected={() => setHasKey(true)} />;
 
   return (
     <div className="h-full flex flex-col md:flex-row bg-slate-100 overflow-hidden">

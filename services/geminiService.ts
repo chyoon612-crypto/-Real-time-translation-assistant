@@ -1,9 +1,9 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { LanguageCode } from "../types.ts";
 
 export async function translateAnnouncement(title: string, content: string) {
-  // Use the API key directly as per guidelines
+  // Always create a new instance right before the call to ensure the latest API key is used.
+  // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const userPrompt = `Source text to translate:
